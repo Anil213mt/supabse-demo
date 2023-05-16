@@ -3,6 +3,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 
 console.log("Hello from Functions!")
+console.log("Hello from Functions!")
 
 serve(async (req) => {
   const { name } = await req.json()
