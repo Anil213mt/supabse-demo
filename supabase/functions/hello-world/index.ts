@@ -1,6 +1,7 @@
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-import * as fs from 'fs';
+const csv = require('csv-parser');
+const fs = require('fs');
 
 const supabaseUrl = 'https://dtitoxucemfuyomtyssn.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR0aXRveHVjZW1mdXlvbXR5c3NuIiwicm9sZSI6ImFub24iLCJpYXQiOjE2ODM4OTM2NDksImV4cCI6MTk5OTQ2OTY0OX0.ug8lhguaVAgqS1Ln8JrF_ng1ho6EI7hzt3Ugmp5pH4g';
@@ -23,24 +24,27 @@ serve(async (req) => {
         status: 400,
       })
     } else {
-      const csvData = fs.readFileSync(url, 'utf-8');
-      const rows = csvData.split('\n').slice(1); // Skip header row
+      const stream = supabaseClient.storage
+        .from('demo')
+        .download(url)
+        .pipe(csv());
+        const rows = [];
+      stream.on('data', (data) => {
+        rows.push(data);
+        console.log(data);
+        
+      });
 
-      for (const row of rows) {
-        const [email, password] = row.split(',');
+      stream.on('end', () => {
+        // Process the rows or perform any desired operations
+        console.log('CSV file read successfully:', rows);
+        res.status(200).json({ data: rows });
+      });
 
-        try {
-          const { userdata, error } = await supabaseClient.auth.signUp({ email, password });
-
-          if (error) {
-            console.error(`Error creating user: ${error.message}`);
-          } else {
-            console.log(`User created: ${userdata?.email}`);
-          }
-        } catch (error) {
-          console.error(`Error creating user: ${error.message}`);
-        }
-      }
+      stream.on('error', (error) => {
+        console.error('Error reading CSV file:', error);
+        res.status(500).json({ error: 'Failed to read CSV file' });
+      });
 
       const data = {
         data: req,
