@@ -25,7 +25,7 @@ serve(async (req) => {
       })
     } else {
 
-      const { userData, error } = await supabaseClient.auth.signUp({ 'anil.nakum.mt@gmail.com', password: '' });
+      const { userData, error } = await supabaseClient.auth.signUp({ email:'anil.nakum.mt@gmail.com', password: '' });
       if (error) {
         return new Response(JSON.stringify({ error: error }), {
           headers: { 'Content-Type': 'application/json' },
@@ -56,7 +56,7 @@ serve(async (req) => {
       // });
 
       const data = {
-        data: req,
+        data: userData,
         message: `Hello ${url}!`,
       }
 
